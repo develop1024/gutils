@@ -92,6 +92,13 @@ func ResponseSuccessWithData(data interface{}, r *ghttp.Request) {
 	})
 }
 
+// ResponseSuccessWithCustomData 返回成功并指定数据
+func ResponseSuccessWithCustomData(data map[string]interface{}, r *ghttp.Request) {
+	data["code"] = Success
+	data["msg"] = "操作成功"
+	_ = r.Response.WriteJsonExit(data)
+}
+
 // ResponseSuccessWithDataMsg 返回成功并指定数据和消息
 func ResponseSuccessWithDataMsg(data map[string]interface{}, msg string, r *ghttp.Request) {
 	_ = r.Response.WriteJsonExit(g.Map{
