@@ -84,7 +84,7 @@ func ResponseSuccessWithMsg(msg string, r *ghttp.Request) {
 }
 
 // ResponseSuccessWithData 返回成功并指定数据
-func ResponseSuccessWithData(data map[string]interface{}, r *ghttp.Request) {
+func ResponseSuccessWithData(data interface{}, r *ghttp.Request) {
 	_ = r.Response.WriteJsonExit(g.Map{
 		"code": Success,
 		"msg":  "操作成功",
@@ -108,7 +108,7 @@ func GetErrorExit(err error, r *ghttp.Request) {
 	}
 }
 
-// GetErrorAndContinue 返回错误并退出
+// GetErrorAndSkip 返回错误并退出
 func GetErrorAndSkip(err error, r *ghttp.Request) {
 	if err != nil {
 		ResponseErrorAndSkip(r, err)
@@ -120,7 +120,7 @@ func GetStructAndValid(params interface{}, r *ghttp.Request) {
 	err := r.GetStruct(params)
 	GetErrorExit(err, r)
 
-	if err := gvalid.CheckStruct(params, nil); err != nil {
+	if err := gvalid.CheckStruct(r.Context(), params, nil); err != nil {
 		ResponseFailWithMsg(err.FirstString(), r)
 	}
 }
@@ -182,4 +182,45 @@ func Paginate(total int, r *ghttp.Request, function func(page, pageSize int) (gd
 		"data": result,
 		"hasNextPage": hasNextPage,
 	}, r)
+}
+
+// LayPage layui分页
+func LayPage(r *ghttp.Request, tableName string, whereMap map[string]interface{})  {
+	page := r.GetInt("page", 1)
+	limit := r.GetInt("limit", 10)
+
+	data, err := g.DB().Model(tableName).Where(whereMap).Offset((page-1)*limit).Limit(limit).FindAll()
+	GetErrorExit(err, r)
+
+	count, err := g.DB().Model(tableName).Where(whereMap).Count()
+	GetErrorExit(err, r)
+
+	_ = r.Response.WriteJsonExit(g.Map{
+		"code": 0,
+		"msg": "ok",
+		"count": count,
+		"data": data,
+	})
+}
+
+// LayPageCallback layui分页支持回调函数
+func LayPageCallback(r *ghttp.Request, tableName string, whereMap map[string]interface{}, callback func(data *gdb.Result))  {
+	page := r.GetInt("page", 1)
+	limit := r.GetInt("limit", 10)
+
+	data, err := g.DB().Model(tableName).Where(whereMap).Offset((page-1)*limit).Limit(limit).FindAll()
+	GetErrorExit(err, r)
+
+	// 调用回调函数
+	callback(&data)
+
+	count, err := g.DB().Model(tableName).Where(whereMap).Count()
+	GetErrorExit(err, r)
+
+	_ = r.Response.WriteJsonExit(g.Map{
+		"code": 0,
+		"msg": "ok",
+		"count": count,
+		"data": data,
+	})
 }
