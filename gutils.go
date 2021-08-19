@@ -1,5 +1,6 @@
 package gutils
 
+
 import (
 	"fmt"
 	"github.com/gogf/gf/crypto/gmd5"
@@ -192,14 +193,14 @@ func Paginate(total int, r *ghttp.Request, function func(page, pageSize int) (gd
 }
 
 // LayPage layui分页
-func LayPage(r *ghttp.Request, tableName string, whereMap map[string]interface{})  {
+func LayPage(r *ghttp.Request, tableName string, where interface{})  {
 	page := r.GetInt("page", 1)
 	limit := r.GetInt("limit", 10)
 
-	data, err := g.DB().Model(tableName).Where(whereMap).Offset((page-1)*limit).Limit(limit).FindAll()
+	data, err := g.DB().Model(tableName).Where(where).Offset((page-1)*limit).Limit(limit).FindAll()
 	GetErrorExit(err, r)
 
-	count, err := g.DB().Model(tableName).Where(whereMap).Count()
+	count, err := g.DB().Model(tableName).Where(where).Count()
 	GetErrorExit(err, r)
 
 	_ = r.Response.WriteJsonExit(g.Map{
@@ -211,17 +212,17 @@ func LayPage(r *ghttp.Request, tableName string, whereMap map[string]interface{}
 }
 
 // LayPageCallback layui分页支持回调函数
-func LayPageCallback(r *ghttp.Request, tableName string, whereMap map[string]interface{}, callback func(data *gdb.Result))  {
+func LayPageCallback(r *ghttp.Request, tableName string, where interface{}, callback func(data *gdb.Result))  {
 	page := r.GetInt("page", 1)
 	limit := r.GetInt("limit", 10)
 
-	data, err := g.DB().Model(tableName).Where(whereMap).Offset((page-1)*limit).Limit(limit).FindAll()
+	data, err := g.DB().Model(tableName).Where(where).Offset((page-1)*limit).Limit(limit).FindAll()
 	GetErrorExit(err, r)
 
 	// 调用回调函数
 	callback(&data)
 
-	count, err := g.DB().Model(tableName).Where(whereMap).Count()
+	count, err := g.DB().Model(tableName).Where(where).Count()
 	GetErrorExit(err, r)
 
 	_ = r.Response.WriteJsonExit(g.Map{
@@ -231,3 +232,120 @@ func LayPageCallback(r *ghttp.Request, tableName string, whereMap map[string]int
 		"data": data,
 	})
 }
+
+// ErgodicParentChild 遍历父子组合关系
+func ErgodicParentChild(tableName string, childName string, parentField string, childParentField string, isParentCondition interface{}) *gdb.Result {
+	parentData, _ := g.DB().Model(tableName).Where(isParentCondition).FindAll()
+
+	for _, parent := range parentData {
+		childData, _ := g.DB().Model(tableName).Where(g.Map{childParentField: parent[parentField]}).FindAll()
+		parent[childName] = g.NewVar(childData)
+	}
+	return &parentData
+}
+
+// ErgodicParentChild1 遍历父子组合关系
+func ErgodicParentChild1(tableName string, childName string, parentField string, childParentField string) *gdb.Result {
+	return ErgodicParentChild(tableName, childName, parentField, childParentField, childParentField + ` is null or `+ childParentField +` =''`)
+}
+
+// ErgodicParentChild2 遍历父子组合关系
+func ErgodicParentChild2(tableName string, childName string, parentField string, childParentField string) *gdb.Result {
+	return ErgodicParentChild(tableName, childName, parentField, childParentField, parentField + `=0`)
+}
+
+// HasExists 判断元素是否存在与某列表
+func HasExists(dataList interface{}, data interface{}) bool {
+	result := false
+
+	switch dataList.(type) {
+	case []string:
+		for _, item := range dataList.([]string) {
+			if item == data {
+				result = true
+			}
+		}
+	case []int:
+		for _, item := range dataList.([]int) {
+			if item == data {
+				result = true
+			}
+		}
+	case []int8:
+		for _, item := range dataList.([]int8) {
+			if item == data {
+				result = true
+			}
+		}
+	case []int16:
+		for _, item := range dataList.([]int16) {
+			if item == data {
+				result = true
+			}
+		}
+	case []int32:
+		for _, item := range dataList.([]int32) {
+			if item == data {
+				result = true
+			}
+		}
+	case []int64:
+		for _, item := range dataList.([]int64) {
+			if item == data {
+				result = true
+			}
+		}
+	case []uint:
+		for _, item := range dataList.([]int) {
+			if item == data {
+				result = true
+			}
+		}
+	case []uint8:
+		for _, item := range dataList.([]int8) {
+			if item == data {
+				result = true
+			}
+		}
+	case []uint16:
+		for _, item := range dataList.([]int16) {
+			if item == data {
+				result = true
+			}
+		}
+	case []uint32:
+		for _, item := range dataList.([]int32) {
+			if item == data {
+				result = true
+			}
+		}
+	case []uint64:
+		for _, item := range dataList.([]int64) {
+			if item == data {
+				result = true
+			}
+		}
+
+	case []float32:
+		for _, item := range dataList.([]float32) {
+			if item == data {
+				result = true
+			}
+		}
+	case []float64:
+		for _, item := range dataList.([]float64) {
+			if item == data {
+				result = true
+			}
+		}
+	case []gdb.Record:
+		for _, item := range dataList.([]gdb.Record) {
+			if item.Json() == data.(gdb.Record).Json() {
+				result = true
+			}
+		}
+	}
+
+	return result
+}
+
