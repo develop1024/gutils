@@ -2,6 +2,7 @@ package gutils
 
 
 import (
+	"crypto/md5"
 	"fmt"
 	"github.com/gogf/gf/crypto/gmd5"
 	"github.com/gogf/gf/database/gdb"
@@ -374,4 +375,10 @@ func RandStr(length int) string {
 		strList = append(strList, strSlice[num])
 	}
 	return strings.Join(strList, "")
+}
+
+// MD5 MD5加密
+func MD5(data string) string {
+	bytes := md5.Sum([]byte(data))
+	return fmt.Sprintf("%x", bytes)
 }
