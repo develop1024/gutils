@@ -3,6 +3,7 @@ package gutils
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"github.com/gogf/gf/crypto/gmd5"
 	"github.com/gogf/gf/database/gdb"
@@ -381,4 +382,13 @@ func RandStr(length int) string {
 func MD5(data string) string {
 	bytes := md5.Sum([]byte(data))
 	return fmt.Sprintf("%x", bytes)
+}
+
+// MD5Salt MD5加盐
+func MD5Salt(data string, salt string) string {
+	hash := md5.New()
+	hash.Write([]byte(data))
+	hash.Write([]byte(salt))
+	sum := hash.Sum(nil)
+	return hex.EncodeToString(sum)
 }
