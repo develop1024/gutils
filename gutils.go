@@ -9,8 +9,10 @@ import (
 	"github.com/gogf/gf/net/ghttp"
 	"github.com/gogf/gf/util/gvalid"
 	"log"
+	"math/rand"
 	"sort"
 	"strings"
+	"time"
 )
 
 // 指定返回的状态
@@ -18,6 +20,7 @@ const (
 	Success     = 0
 	ServerError = 50001
 	LogicError  = 50002
+	AuthenticationError = 401
 )
 
 // ResponseError 返回错误
@@ -349,3 +352,26 @@ func HasExists(dataList interface{}, data interface{}) bool {
 	return result
 }
 
+// RandNum 生成随机数
+func RandNum(num int) int {
+	time.Sleep(time.Nanosecond)
+	rand.Seed(time.Now().UnixNano())
+	return rand.Intn(num)
+}
+
+// RandRangeNum 生成指定范围的随机数
+func RandRangeNum(min, max int) int {
+	return RandNum(max - min + 1) + 1
+}
+
+// RandStr 生成随机字符串
+func RandStr(length int) string {
+	strs := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	strSlice := strings.Split(strs, "")
+	strList := make([]string, length)
+	for i:=0;i<length;i++ {
+		num := RandNum(len(strs))
+		strList = append(strList, strSlice[num])
+	}
+	return strings.Join(strList, "")
+}
